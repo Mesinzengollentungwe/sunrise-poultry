@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Staff Dashboard — Sun Rise Poultry</title>
+<link rel="icon" href="images/logo.jpeg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="admin-body">
+
+<div class="admin-login" id="loginView">
+  <div class="admin-login-card reveal is-visible">
+    <img src="images/logo.jpeg" alt="logo" class="admin-logo" />
+    <h2>Staff Login</h2>
+    <p class="admin-sub">Enter the admin password to manage orders.</p>
+    <form id="loginForm">
+      <input type="password" id="password" placeholder="Admin password" required autofocus />
+      <button type="submit" class="btn btn-primary btn-block">Log In</button>
+      <p class="login-error" id="loginError"></p>
+    </form>
+    <a href="index.html" class="back-link">← Back to site</a>
+  </div>
+</div>
+
+<div class="admin-dash" id="dashView" style="display:none;">
+  <header class="admin-topbar">
+    <div class="container admin-topbar-inner">
+      <div class="brand"><img src="images/logo.jpeg" alt="logo" /><span class="brand-name" style="color:var(--forest-950);">Sun Rise Poultry — Staff</span></div>
+      <button class="btn btn-ghost" id="logoutBtn">Log Out</button>
+    </div>
+  </header>
+
+  <main class="container admin-main">
+    <div class="stat-cards" id="statCards"></div>
+
+    <div class="admin-panel">
+      <div class="admin-panel-head">
+        <h3>Orders</h3>
+        <div class="filter-tabs" id="filterTabs">
+          <button class="filter-tab active" data-status="all">All</button>
+          <button class="filter-tab" data-status="pending">Pending</button>
+          <button class="filter-tab" data-status="confirmed">Confirmed</button>
+          <button class="filter-tab" data-status="out-for-delivery">Out for Delivery</button>
+          <button class="filter-tab" data-status="completed">Completed</button>
+          <button class="filter-tab" data-status="cancelled">Cancelled</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="orders-table" id="ordersTable">
+          <thead>
+            <tr>
+              <th>Order #</th><th>Customer</th><th>Item</th><th>Qty</th><th>Total</th><th>Method</th><th>Placed</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <p id="emptyState" class="empty-state" style="display:none;">No orders yet.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>

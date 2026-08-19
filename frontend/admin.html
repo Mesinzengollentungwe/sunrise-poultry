@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Order dashboard — Sun Rise Poultry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { background: var(--parchment); }
+  .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  .admin-head { display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; margin-bottom: 28px; }
+  .key-box { display:flex; gap:10px; }
+  .key-box input { width: 220px; }
+  table { width:100%; border-collapse: collapse; background: var(--paper); border-radius: var(--radius-md); overflow:hidden; box-shadow: var(--shadow-soft); }
+  th, td { text-align:left; padding: 14px 16px; font-size: 0.88rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); text-transform:uppercase; font-size:0.7rem; letter-spacing:.06em; color: var(--canopy); background: var(--parchment-deep); }
+  tr:last-child td { border-bottom:none; }
+  .status-select { font-family: var(--font-mono); font-size:0.78rem; padding:6px 8px; }
+  .items-list { margin:0; padding-left:16px; font-size:0.82rem; }
+  .muted { color: rgba(22,36,27,0.55); font-size:0.8rem; }
+  .refresh-btn { white-space:nowrap; }
+  .empty-state { text-align:center; padding: 60px 20px; color: rgba(22,36,27,0.55); }
+  .status-pill { font-family: var(--font-mono); font-size:0.7rem; padding:4px 10px; border-radius:999px; background: var(--parchment-deep); color: var(--canopy); text-transform: uppercase; letter-spacing:.04em; }
+</style>
+</head>
+<body>
+  <div class="admin-wrap">
+    <div class="admin-head">
+      <div>
+        <span class="eyebrow">Sun Rise Poultry</span>
+        <h1 style="font-size:1.8rem; margin-top:8px;">Order dashboard</h1>
+      </div>
+      <div class="key-box">
+        <input type="password" id="adminKey" placeholder="Admin key" />
+        <button class="btn btn-primary refresh-btn" id="loadBtn">Load orders</button>
+      </div>
+    </div>
+
+    <div id="ordersHolder">
+      <div class="empty-state">Enter the admin key to load current orders.</div>
+    </div>
+  </div>
+
+<script>
+  const API_BASE = window.SUNRISE_API_BASE || "";
+  const holder = document.getElementById("ordersHolder");
+  const keyInput = document.getElementById("adminKey");
+
+  function money(n) { return new Intl.NumberFormat("en-US").format(n) + " FCFA"; }
+
+  const STATUSES = ["pending_confirmation", "confirmed", "out_for_delivery", "completed", "cancelled"];
+
+  async function loadOrders() {
+    const key = keyInput.value.trim();
+    if (!key) { holder.innerHTML = '<div class="empty-state">Enter the admin key to load current orders.</div>'; return; }
+    holder.innerHTML = '<div class="empty-state">Loading…</div>';
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/orders`, { headers: { "x-admin-key": key } });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not load orders.");
+      renderOrders(data.orders, key);
+    } catch (err) {
+      holder.innerHTML = `<div class="empty-state">${err.message}</div>`;
+    }
+  }
+
+  function renderOrders(orders, key) {
+    if (orders.length === 0) {
+      holder.innerHTML = '<div class="empty-state">No orders yet.</div>';
+      return;
+    }
+    holder.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Delivery</th>
+            <th>Total</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${orders.map(o => `
+            <tr>
+              <td>
+                <strong style="font-family:var(--font-mono);">${o.id}</strong><br>
+                <span class="muted">${new Date(o.createdAt).toLocaleString()}</span>
+                ${o.preferredDate ? `<br><span class="muted">Preferred: ${o.preferredDate}</span>` : ""}
+              </td>
+              <td>
+                ${o.customer.name}<br>
+                <span class="muted">${o.customer.phone}</span><br>
+                <span class="muted">${o.customer.customerType}</span>
+                ${o.customer.address ? `<br><span class="muted">${o.customer.address}</span>` : ""}
+              </td>
+              <td>
+                <ul class="items-list">
+                  ${o.items.map(i => `<li>${i.qty} × ${i.name}</li>`).join("")}
+                </ul>
+                ${o.notes ? `<div class="muted">"${o.notes}"</div>` : ""}
+              </td>
+              <td>${o.delivery.label}${o.delivery.fee ? `<br><span class="muted">+${money(o.delivery.fee)}</span>` : ""}</td>
+              <td><strong>${money(o.total)}</strong></td>
+              <td>
+                <select class="status-select" data-id="${o.id}">
+                  ${STATUSES.map(s => `<option value="${s}" ${s === o.status ? "selected" : ""}>${s.replace(/_/g," ")}</option>`).join("")}
+                </select>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    holder.querySelectorAll(".status-select").forEach(sel => {
+      sel.addEventListener("change", async () => {
+        const id = sel.dataset.id;
+        try {
+          const res = await fetch(`${API_BASE}/api/admin/orders/${id}/status`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", "x-admin-key": key },
+            body: JSON.stringify({ status: sel.value }),
+          });
+          if (!res.ok) throw new Error("Could not update status.");
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    });
+  }
+
+  document.getElementById("loadBtn").addEventListener("click", loadOrders);
+  keyInput.addEventListener("keydown", e => { if (e.key === "Enter") loadOrders(); });
+</script>
+</body>
+</html>

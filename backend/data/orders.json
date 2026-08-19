@@ -1,0 +1,33 @@
+[
+  {
+    "id": "SRP-MJP5MDTV",
+    "createdAt": "2026-08-11T23:34:34.702Z",
+    "updatedAt": "2026-08-11T23:34:34.702Z",
+    "status": "pending_confirmation",
+    "customer": {
+      "name": "Jean Mballa",
+      "phone": "+237670000000",
+      "email": null,
+      "address": "Bastos, Yaoundé",
+      "customerType": "household"
+    },
+    "items": [
+      {
+        "productId": "standard-broiler",
+        "name": "Standard Live Broiler",
+        "unitPrice": 3500,
+        "qty": 3,
+        "lineTotal": 10500
+      }
+    ],
+    "delivery": {
+      "optionId": "moto-delivery",
+      "label": "Motorbike delivery — within Yaoundé",
+      "fee": 1500
+    },
+    "preferredDate": "2026-08-20",
+    "notes": "Please call before arriving",
+    "subtotal": 10500,
+    "total": 12000
+  }
+]
