@@ -9,7 +9,16 @@ const { nanoid } = require('nanoid');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 
-const DB_PATH = path.join(__dirname, 'data', 'db.json');
+const fs = require('fs');
+
+const DATA_DIR = path.join(__dirname, 'data');
+const DB_PATH = path.join(DATA_DIR, 'db.json');
+
+// Make sure the data folder exists before lowdb tries to write into it
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
 const adapter = new FileSync(DB_PATH);
 const db = low(adapter);
 
